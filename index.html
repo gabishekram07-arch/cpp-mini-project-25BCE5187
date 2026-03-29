@@ -2,163 +2,63 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Payroll System</title>
+<title>Payroll System Terminal</title>
 
 <style>
     body {
-        font-family: Arial;
-        background: #f4f6f9;
-        padding: 30px;
-    }
-    .container {
-        max-width: 900px;
-        margin: auto;
-    }
-    .card {
-        background: white;
+        background: black;
+        color: #00ff00;
+        font-family: monospace;
         padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
     }
-    input, button {
-        padding: 10px;
-        margin: 5px;
-    }
-    button {
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-    button:hover {
-        background: #0056b3;
-    }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: center;
-    }
-    th {
-        background: #007bff;
-        color: white;
-    }
-    #output {
-        background: #eef;
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 8px;
+    #terminal {
         white-space: pre-line;
+        height: 400px;
+        overflow-y: auto;
+        border: 1px solid #00ff00;
+        padding: 10px;
+    }
+    input {
+        width: 100%;
+        background: black;
+        color: #00ff00;
+        border: none;
+        outline: none;
+        font-family: monospace;
+        font-size: 16px;
     }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-
-    <div class="card">
-        <h2>Employee Entry</h2>
-        <input type="number" id="id" placeholder="Employee ID">
-        <input type="text" id="name" placeholder="Name">
-        <input type="number" id="basic" placeholder="Basic Pay">
-        <input type="number" id="ot" placeholder="OT Hours">
-
-        <br>
-        <button onclick="addEmployee()">Add</button>
-        <button onclick="updateOT()">Update OT</button>
-        <button onclick="generatePayslip()">Payslip</button>
-        <button onclick="totalPayout()">Total Payout</button>
-        <button onclick="highestPaid()">Highest Paid</button>
-        <button onclick="clearData()">Clear All</button>
-
-        <div id="output"></div>
-    </div>
-
-    <div class="card">
-        <h2>Employee List</h2>
-        <table id="table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Basic</th>
-                    <th>OT</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-</div>
+<div id="terminal"></div>
+<input type="text" id="input" autofocus placeholder="Enter choice...">
 
 <script>
-let employees = JSON.parse(localStorage.getItem("employees")) || [];
+let employees = [];
 const otRate = 200;
+let step = "menu";
+let temp = {};
 
-// Save to localStorage
-function saveData() {
-    localStorage.setItem("employees", JSON.stringify(employees));
+function print(msg) {
+    const term = document.getElementById("terminal");
+    term.innerText += msg + "\n";
+    term.scrollTop = term.scrollHeight;
 }
 
-// Refresh table
-function renderTable() {
-    let tbody = document.querySelector("#table tbody");
-    tbody.innerHTML = "";
-
-    employees.forEach(e => {
-        let row = `<tr>
-            <td>${e.id}</td>
-            <td>${e.name}</td>
-            <td>${e.basic}</td>
-            <td>${e.ot}</td>
-        </tr>`;
-        tbody.innerHTML += row;
-    });
+function showMenu() {
+    print("\n--- Payroll System ---");
+    print("1. Add Employee");
+    print("2. Update OT");
+    print("3. Generate Payslip");
+    print("4. Total Payout");
+    print("5. Highest Paid");
+    print("6. Save Data");
+    print("7. Exit");
+    print("Enter choice:");
 }
 
-// Add employee
-function addEmployee() {
-    let id = document.getElementById("id").value;
-    let name = document.getElementById("name").value;
-    let basic = parseFloat(document.getElementById("basic").value);
-    let ot = parseInt(document.getElementById("ot").value);
-
-    if (!id || !name || basic < 0 || ot < 0) {
-        return log("Invalid input!");
-    }
-
-    if (employees.find(e => e.id == id)) {
-        return log("EmpID exists!");
-    }
-
-    employees.push({id, name, basic, ot});
-    saveData();
-    renderTable();
-    log("Employee added!");
-}
-
-// Update OT
-function updateOT() {
-    let id = document.getElementById("id").value;
-    let ot = parseInt(document.getElementById("ot").value);
-
-    let emp = employees.find(e => e.id == id);
-    if (!emp) return log("Employee not found!");
-
-    emp.ot = ot;
-    saveData();
-    renderTable();
-    log("OT updated!");
-}
-
-// Salary logic
 function gross(e) { return e.basic + e.ot * otRate; }
 function tax(g) {
     if (g < 20000) return g * 0.05;
@@ -166,70 +66,165 @@ function tax(g) {
     return g * 0.20;
 }
 
-// Payslip
-function generatePayslip() {
-    let id = document.getElementById("id").value;
-    let e = employees.find(x => x.id == id);
+function handleInput(value) {
+    if (step === "menu") {
+        switch(value) {
+            case "1":
+                step = "add_id";
+                print("Enter Emp ID:");
+                break;
 
-    if (!e) return log("Not found!");
+            case "2":
+                step = "update_id";
+                print("Enter Emp ID:");
+                break;
 
-    let g = gross(e);
-    let t = tax(g);
-    let n = g - t;
+            case "3":
+                step = "payslip_id";
+                print("Enter Emp ID:");
+                break;
 
-    log(`--- Salary Slip ---
-ID: ${e.id}
-Name: ${e.name}
-Gross: ${g}
-Tax: ${t}
-Net: ${n}`);
-}
+            case "4":
+                let total = employees.reduce((sum, e) => {
+                    let g = gross(e);
+                    return sum + (g - tax(g));
+                }, 0);
+                print("Total Payout: " + total);
+                showMenu();
+                break;
 
-// Total payout
-function totalPayout() {
-    let total = employees.reduce((sum, e) => {
-        let g = gross(e);
-        return sum + (g - tax(g));
-    }, 0);
+            case "5":
+                if (employees.length === 0) {
+                    print("No employees!");
+                } else {
+                    let max = employees[0];
+                    let maxNet = gross(max) - tax(gross(max));
 
-    log("Total payout: " + total);
-}
+                    employees.forEach(e => {
+                        let net = gross(e) - tax(gross(e));
+                        if (net > maxNet) {
+                            max = e;
+                            maxNet = net;
+                        }
+                    });
 
-// Highest paid
-function highestPaid() {
-    if (employees.length === 0) return log("No employees!");
+                    print("Highest Paid: " + max.name + " (Net: " + maxNet + ")");
+                }
+                showMenu();
+                break;
 
-    let max = employees[0];
-    let maxNet = gross(max) - tax(gross(max));
+            case "6":
+                print("Data saved (simulated).");
+                showMenu();
+                break;
 
-    employees.forEach(e => {
-        let net = gross(e) - tax(gross(e));
-        if (net > maxNet) {
-            max = e;
-            maxNet = net;
+            case "7":
+                print("Exiting...");
+                document.getElementById("input").disabled = true;
+                break;
+
+            default:
+                print("Invalid choice!");
+                showMenu();
         }
-    });
+    }
 
-    log(`Highest Paid: ${max.name} (Net: ${maxNet})`);
+    // ADD EMPLOYEE FLOW
+    else if (step === "add_id") {
+        temp.id = value;
+        if (employees.find(e => e.id == value)) {
+            print("EmpID exists!");
+            step = "menu";
+            showMenu();
+        } else {
+            step = "add_name";
+            print("Enter Name:");
+        }
+    }
+    else if (step === "add_name") {
+        temp.name = value;
+        step = "add_basic";
+        print("Enter Basic Pay:");
+    }
+    else if (step === "add_basic") {
+        temp.basic = parseFloat(value);
+        step = "add_ot";
+        print("Enter OT Hours:");
+    }
+    else if (step === "add_ot") {
+        temp.ot = parseInt(value);
+
+        if (temp.basic < 0 || temp.ot < 0) {
+            print("Invalid input!");
+        } else {
+            employees.push({...temp});
+            print("Employee added!");
+        }
+
+        temp = {};
+        step = "menu";
+        showMenu();
+    }
+
+    // UPDATE OT
+    else if (step === "update_id") {
+        temp.id = value;
+        let emp = employees.find(e => e.id == value);
+        if (!emp) {
+            print("Employee not found!");
+            step = "menu";
+            showMenu();
+        } else {
+            temp.emp = emp;
+            step = "update_ot";
+            print("Enter new OT:");
+        }
+    }
+    else if (step === "update_ot") {
+        temp.emp.ot = parseInt(value);
+        print("Updated!");
+        temp = {};
+        step = "menu";
+        showMenu();
+    }
+
+    // PAYSLIP
+    else if (step === "payslip_id") {
+        let emp = employees.find(e => e.id == value);
+
+        if (!emp) {
+            print("Employee not found!");
+        } else {
+            let g = gross(emp);
+            let t = tax(g);
+            let n = g - t;
+
+            print("\n--- Salary Slip ---");
+            print("ID: " + emp.id);
+            print("Name: " + emp.name);
+            print("Gross: " + g);
+            print("Tax: " + t);
+            print("Net: " + n);
+        }
+
+        step = "menu";
+        showMenu();
+    }
 }
 
-// Clear data
-function clearData() {
-    if (!confirm("Delete all data?")) return;
+// Input handler
+document.getElementById("input").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        let value = this.value.trim();
+        print("> " + value);
+        this.value = "";
+        handleInput(value);
+    }
+});
 
-    employees = [];
-    saveData();
-    renderTable();
-    log("All data cleared!");
-}
-
-// Output
-function log(msg) {
-    document.getElementById("output").innerText = msg;
-}
-
-// Load on start
-renderTable();
+// Start
+print("Welcome to Payroll System");
+showMenu();
 </script>
 
 </body>
