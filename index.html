@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payroll System</title>
+
+<style>
+    body {
+        font-family: Arial;
+        background: #f0f2f5;
+        padding: 30px;
+    }
+    .box {
+        background: white;
+        padding: 20px;
+        width: 400px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+    }
+    button {
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #0056b3;
+    }
+    #output {
+        margin-top: 15px;
+        padding: 10px;
+        background: #eee;
+        height: 180px;
+        overflow-y: auto;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>Payroll System</h2>
+
+    <input type="number" id="id" placeholder="Employee ID">
+    <input type="text" id="name" placeholder="Name">
+    <input type="number" id="basic" placeholder="Basic Pay">
+    <input type="number" id="ot" placeholder="OT Hours">
+
+    <button onclick="addEmployee()">Add Employee</button>
+    <button onclick="updateOT()">Update OT</button>
+    <button onclick="generatePayslip()">Generate Payslip</button>
+    <button onclick="totalPayout()">Total Payout</button>
+    <button onclick="highestPaid()">Highest Paid</button>
+
+    <div id="output"></div>
+</div>
+
+<script>
+let employees = [];
+const otRate = 200;
+
+// Add Employee
+function addEmployee() {
+    let id = document.getElementById("id").value;
+    let name = document.getElementById("name").value;
+    let basic = parseFloat(document.getElementById("basic").value);
+    let ot = parseInt(document.getElementById("ot").value);
+
+    if (basic < 0 || ot < 0) {
+        return log("Invalid input!");
+    }
+
+    if (employees.find(e => e.id == id)) {
+        return log("EmpID already exists!");
+    }
+
+    employees.push({id, name, basic, ot});
+    log("Employee added!");
+}
+
+// Update OT
+function updateOT() {
+    let id = document.getElementById("id").value;
+    let ot = parseInt(document.getElementById("ot").value);
+
+    let emp = employees.find(e => e.id == id);
+    if (!emp) return log("Employee not found!");
+
+    emp.ot = ot;
+    log("OT updated!");
+}
+
+// Salary calculations
+function calcGross(emp) {
+    return emp.basic + emp.ot * otRate;
+}
+
+function calcTax(gross) {
+    if (gross < 20000) return gross * 0.05;
+    if (gross <= 50000) return gross * 0.10;
+    return gross * 0.20;
+}
+
+// Generate Payslip
+function generatePayslip() {
+    let id = document.getElementById("id").value;
+    let emp = employees.find(e => e.id == id);
+
+    if (!emp) return log("Employee not found!");
+
+    let gross = calcGross(emp);
+    let tax = calcTax(gross);
+    let net = gross - tax;
+
+    log(`
+    --- Payslip ---
+    ID: ${emp.id}
+    Name: ${emp.name}
+    Gross: ${gross}
+    Tax: ${tax}
+    Net: ${net}
+    `);
+}
+
+// Total payout
+function totalPayout() {
+    let total = 0;
+    employees.forEach(e => {
+        let gross = calcGross(e);
+        let tax = calcTax(gross);
+        total += (gross - tax);
+    });
+    log("Total payout: " + total);
+}
+
+// Highest paid
+function highestPaid() {
+    if (employees.length == 0) return log("No employees!");
+
+    let max = employees[0];
+    let maxNet = calcGross(max) - calcTax(calcGross(max));
+
+    employees.forEach(e => {
+        let net = calcGross(e) - calcTax(calcGross(e));
+        if (net > maxNet) {
+            max = e;
+            maxNet = net;
+        }
+    });
+
+    log(`Highest Paid: ${max.name} (Net: ${maxNet})`);
+}
+
+// Output display
+function log(msg) {
+    document.getElementById("output").innerText += msg + "\n";
+}
+</script>
+
+</body>
+</html>
