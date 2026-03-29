@@ -5,67 +5,63 @@
 <title>Payroll Terminal</title>
 
 <style>
-    body {
-        background: black;
-        font-family: monospace;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        margin: 0;
-    }
+body {
+    background: black;
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
 
-    /* 🎨 Header */
-    .title {
-        font-size: 36px;
-        font-weight: bold;
-        margin-bottom: 25px;
-        background: linear-gradient(90deg, #00ff00, #00ffff, #00ff00);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 15px #00ff00;
-    }
+.title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 25px;
+    background: linear-gradient(90deg, #00ff00, #00ffff, #00ff00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px #00ff00;
+}
 
-    /* 📦 BIGGER TERMINAL BOX */
-    .container {
-        width: 1000px;          /* ⬅️ increased width */
-        border: 2px solid #00ff00;
-        padding: 20px;
-        box-shadow: 0 0 20px #00ff00;
-    }
+.container {
+    width: 1000px;
+    border: 2px solid #00ff00;
+    padding: 20px;
+    box-shadow: 0 0 20px #00ff00;
+}
 
-    #terminal {
-        height: 500px;          /* ⬅️ increased height */
-        overflow-y: auto;
-        white-space: pre-line;
-        margin-bottom: 15px;
-        color: #00ff00;
-        font-size: 20px;        /* ⬅️ bigger text */
-        line-height: 1.8;
-    }
+#terminal {
+    height: 500px;
+    overflow-y: auto;
+    white-space: pre-line;
+    margin-bottom: 15px;
+    color: #00ff00;
+    font-size: 20px;
+}
 
-    /* 🔲 Bigger input box */
-    .input-box {
-        display: flex;
-        border: 2px solid #00ff00;
-        padding: 12px;
-    }
+.input-box {
+    display: flex;
+    border: 2px solid #00ff00;
+    padding: 12px;
+}
 
-    .prompt {
-        margin-right: 12px;
-        font-size: 20px;
-    }
+.prompt {
+    margin-right: 12px;
+    font-size: 20px;
+}
 
-    input {
-        flex: 1;
-        background: black;
-        color: #00ff00;
-        border: none;
-        outline: none;
-        font-family: monospace;
-        font-size: 20px;
-    }
+input {
+    flex: 1;
+    background: black;
+    color: #00ff00;
+    border: none;
+    outline: none;
+    font-family: monospace;
+    font-size: 20px;
+}
 </style>
 </head>
 
@@ -101,8 +97,7 @@ function showMenu() {
     print("3. Generate Payslip");
     print("4. Total Payout");
     print("5. Highest Paid");
-    print("6. Save Data");
-    print("7. Exit");
+    print("6. Exit");
     print("Enter choice:");
 }
 
@@ -118,18 +113,10 @@ function handleInput(value) {
 
     if (step === "menu") {
         switch(value) {
-            case "1":
-                step = "add_id";
-                print("Enter Emp ID:");
-                break;
-            case "2":
-                step = "update_id";
-                print("Enter Emp ID:");
-                break;
-            case "3":
-                step = "payslip_id";
-                print("Enter Emp ID:");
-                break;
+            case "1": step = "add_id"; print("Enter Emp ID:"); break;
+            case "2": step = "update_id"; print("Enter Emp ID:"); break;
+            case "3": step = "payslip_id"; print("Enter Emp ID:"); break;
+
             case "4":
                 let total = employees.reduce((sum, e) => {
                     let g = gross(e);
@@ -138,12 +125,14 @@ function handleInput(value) {
                 print("Total Payout: " + total);
                 showMenu();
                 break;
+
             case "5":
                 if (employees.length === 0) {
                     print("No employees!");
                 } else {
                     let max = employees[0];
                     let maxNet = gross(max) - tax(gross(max));
+
                     employees.forEach(e => {
                         let net = gross(e) - tax(gross(e));
                         if (net > maxNet) {
@@ -151,18 +140,17 @@ function handleInput(value) {
                             maxNet = net;
                         }
                     });
+
                     print("Highest Paid: " + max.name + " (Net: " + maxNet + ")");
                 }
                 showMenu();
                 break;
+
             case "6":
-                print("Data saved (simulated).");
-                showMenu();
-                break;
-            case "7":
                 print("Exiting...");
                 document.getElementById("input").disabled = true;
                 break;
+
             default:
                 print("Invalid choice!");
                 showMenu();
@@ -173,49 +161,41 @@ function handleInput(value) {
         temp.id = value;
         if (employees.find(e => e.id == value)) {
             print("EmpID exists!");
-            step = "menu";
-            showMenu();
+            step = "menu"; showMenu();
         } else {
-            step = "add_name";
-            print("Enter Name:");
+            step = "add_name"; print("Enter Name:");
         }
     }
 
     else if (step === "add_name") {
         temp.name = value;
-        step = "add_basic";
-        print("Enter Basic Pay:");
+        step = "add_basic"; print("Enter Basic Pay:");
     }
 
     else if (step === "add_basic") {
         temp.basic = parseFloat(value);
-        step = "add_ot";
-        print("Enter OT Hours:");
+        step = "add_ot"; print("Enter OT Hours:");
     }
 
     else if (step === "add_ot") {
         temp.ot = parseInt(value);
-        if (temp.basic < 0 || temp.ot < 0) {
-            print("Invalid input!");
-        } else {
+        if (temp.basic < 0 || temp.ot < 0) print("Invalid input!");
+        else {
             employees.push({...temp});
             print("Employee added!");
         }
         temp = {};
-        step = "menu";
-        showMenu();
+        step = "menu"; showMenu();
     }
 
     else if (step === "update_id") {
         let emp = employees.find(e => e.id == value);
         if (!emp) {
             print("Employee not found!");
-            step = "menu";
-            showMenu();
+            step = "menu"; showMenu();
         } else {
             temp.emp = emp;
-            step = "update_ot";
-            print("Enter new OT:");
+            step = "update_ot"; print("Enter new OT:");
         }
     }
 
@@ -223,15 +203,13 @@ function handleInput(value) {
         temp.emp.ot = parseInt(value);
         print("Updated!");
         temp = {};
-        step = "menu";
-        showMenu();
+        step = "menu"; showMenu();
     }
 
     else if (step === "payslip_id") {
         let emp = employees.find(e => e.id == value);
-        if (!emp) {
-            print("Employee not found!");
-        } else {
+        if (!emp) print("Employee not found!");
+        else {
             let g = gross(emp);
             let t = tax(g);
             let n = g - t;
@@ -243,8 +221,7 @@ function handleInput(value) {
             print("Tax: " + t);
             print("Net: " + n);
         }
-        step = "menu";
-        showMenu();
+        step = "menu"; showMenu();
     }
 }
 
