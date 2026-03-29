@@ -7,37 +7,53 @@
 <style>
     body {
         background: black;
-        color: #00ff00;
         font-family: monospace;
         display: flex;
-        justify-content: center;
+        flex-direction: column;
         align-items: center;
+        justify-content: center;
         height: 100vh;
         margin: 0;
     }
 
+    /* 🎨 Attractive Header */
+    .title {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        background: linear-gradient(90deg, #00ff00, #00ffff, #00ff00);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 10px #00ff00;
+    }
+
     .container {
-        width: 800px;
+        width: 850px;
         border: 2px solid #00ff00;
         padding: 15px;
-        box-shadow: 0 0 10px #00ff00;
+        box-shadow: 0 0 15px #00ff00;
     }
 
     #terminal {
-        height: 400px;
+        height: 420px;
         overflow-y: auto;
         white-space: pre-line;
         margin-bottom: 10px;
+        color: #00ff00;
+        font-size: 18px;
+        line-height: 1.6;
     }
 
     .input-box {
         display: flex;
         border: 2px solid #00ff00;
-        padding: 8px;
+        padding: 10px;
     }
 
     .prompt {
-        margin-right: 8px;
+        margin-right: 10px;
+        font-size: 18px;
+        color: #00ff00;
     }
 
     input {
@@ -47,12 +63,15 @@
         border: none;
         outline: none;
         font-family: monospace;
-        font-size: 16px;
+        font-size: 18px;
     }
 </style>
 </head>
 
 <body>
+
+<!-- 🎨 Header OUTSIDE terminal -->
+<div class="title">Welcome to Payroll System</div>
 
 <div class="container">
     <div id="terminal"></div>
@@ -159,7 +178,7 @@ function handleInput(value) {
         }
     }
 
-    // ADD FLOW
+    // ADD EMPLOYEE
     else if (step === "add_id") {
         temp.id = value;
 
@@ -200,7 +219,7 @@ function handleInput(value) {
         showMenu();
     }
 
-    // UPDATE
+    // UPDATE OT
     else if (step === "update_id") {
         let emp = employees.find(e => e.id == value);
 
@@ -247,7 +266,7 @@ function handleInput(value) {
     }
 }
 
-// INPUT EVENT
+// INPUT HANDLER
 document.getElementById("input").addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
         let value = this.value.trim();
@@ -258,7 +277,6 @@ document.getElementById("input").addEventListener("keydown", function(e) {
 });
 
 // START
-print("Welcome to Payroll System");
 showMenu();
 </script>
 
