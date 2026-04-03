@@ -5,142 +5,155 @@
 <title>Payroll System</title>
 
 <style>
-    body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-    }
+body {
+    margin: 0;
+    font-family: monospace;
+    background: #0a0a0a;
+    color: #00ff88;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-    .container {
-        width: 600px;
-        padding: 30px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(15px);
-        box-shadow: 0 0 25px rgba(0, 255, 200, 0.4);
-        text-align: center;
-    }
+/* Main container */
+.container {
+    width: 85%;
+    max-width: 1000px;
+}
 
-    h1 {
-        margin-bottom: 20px;
-        font-size: 32px;
-        background: linear-gradient(90deg, #00ffcc, #00ffff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+/* Title */
+h1 {
+    text-align: center;
+    color: #00ffcc;
+    text-shadow: 0 0 10px #00ffcc;
+}
 
-    .menu {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        margin-bottom: 20px;
-    }
+/* Terminal Output */
+.terminal {
+    background: black;
+    border: 2px solid #00ff88;
+    padding: 20px;
+    height: 400px;   /* BIGGER OUTPUT BOX */
+    overflow-y: auto;
+    box-shadow: 0 0 20px #00ff88;
+    border-radius: 10px;
+    white-space: pre-line;
+}
 
-    button {
-        padding: 15px;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        cursor: pointer;
-        background: linear-gradient(135deg, #00c6ff, #0072ff);
-        color: white;
-        transition: 0.3s;
-        box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-    }
+/* Buttons */
+.menu {
+    margin-top: 15px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
 
-    button:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 20px rgba(0, 255, 255, 0.9);
-    }
+button {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #00ffcc, #0099ff);
+    color: black;
+    font-weight: bold;
+    transition: 0.3s;
+}
 
-    .input-section {
-        margin-top: 20px;
-    }
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #00ffcc;
+}
 
-    input {
-        width: 90%;
-        padding: 10px;
-        margin: 8px 0;
-        border-radius: 8px;
-        border: none;
-        outline: none;
-        font-size: 15px;
-    }
+/* Input fields */
+.input-area {
+    margin-top: 10px;
+}
 
-    .output {
-        margin-top: 20px;
-        padding: 15px;
-        background: rgba(0,0,0,0.4);
-        border-radius: 10px;
-        min-height: 50px;
-    }
-
-    .exit {
-        background: linear-gradient(135deg, #ff4e50, #f00000);
-    }
+input {
+    width: 200px;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-    <h1>💼 Payroll System</h1>
+    <h1>💻 Payroll Terminal</h1>
+
+    <div class="terminal" id="terminal"></div>
 
     <div class="menu">
-        <button onclick="showForm('add')">Add Employee</button>
-        <button onclick="showForm('update')">Update OT</button>
-        <button onclick="showForm('payslip')">Generate Payslip</button>
-        <button onclick="showForm('total')">Total Payout</button>
-        <button onclick="showForm('highest')">Highest Paid</button>
-        <button class="exit" onclick="exitApp()">Exit</button>
+        <button onclick="showAdd()">Add</button>
+        <button onclick="showUpdate()">Update OT</button>
+        <button onclick="showPayslip()">Payslip</button>
+        <button onclick="totalPayout()">Total</button>
+        <button onclick="highestPaid()">Highest</button>
+        <button onclick="exitApp()">Exit</button>
     </div>
 
-    <div class="input-section" id="formArea"></div>
-
-    <div class="output" id="output">Output will appear here...</div>
+    <div class="input-area" id="inputs"></div>
 </div>
 
 <script>
 let employees = [];
 
-function showForm(type) {
-    let form = document.getElementById("formArea");
-
-    if (type === "add") {
-        form.innerHTML = `
-            <input id="id" placeholder="Employee ID"><br>
-            <input id="name" placeholder="Name"><br>
-            <input id="basic" placeholder="Basic Pay"><br>
-            <input id="ot" placeholder="OT Hours"><br>
-            <button onclick="addEmployee()">Submit</button>
-        `;
-    }
-    else if (type === "update") {
-        form.innerHTML = `
-            <input id="id" placeholder="Employee ID"><br>
-            <input id="ot" placeholder="New OT"><br>
-            <button onclick="updateOT()">Update</button>
-        `;
-    }
-    else if (type === "payslip") {
-        form.innerHTML = `
-            <input id="id" placeholder="Employee ID"><br>
-            <button onclick="generatePayslip()">Generate</button>
-        `;
-    }
-    else if (type === "total") {
-        totalPayout();
-    }
-    else if (type === "highest") {
-        highestPaid();
-    }
+function print(text) {
+    const terminal = document.getElementById("terminal");
+    terminal.innerHTML += text + "\n";
+    terminal.scrollTop = terminal.scrollHeight;
 }
 
+function showMenu() {
+    print("\n--- Payroll System ---");
+    print("1. Add Employee");
+    print("2. Update OT");
+    print("3. Generate Payslip");
+    print("4. Total Payout");
+    print("5. Highest Paid");
+    print("6. Exit\n");
+}
+
+/* Show forms */
+function showAdd() {
+    showMenu();
+    print(">> Add Employee");
+
+    document.getElementById("inputs").innerHTML = `
+        <input id="id" placeholder="ID">
+        <input id="name" placeholder="Name">
+        <input id="basic" placeholder="Basic">
+        <input id="ot" placeholder="OT">
+        <button onclick="addEmployee()">Submit</button>
+    `;
+}
+
+function showUpdate() {
+    showMenu();
+    print(">> Update OT");
+
+    document.getElementById("inputs").innerHTML = `
+        <input id="id" placeholder="ID">
+        <input id="ot" placeholder="New OT">
+        <button onclick="updateOT()">Update</button>
+    `;
+}
+
+function showPayslip() {
+    showMenu();
+    print(">> Generate Payslip");
+
+    document.getElementById("inputs").innerHTML = `
+        <input id="id" placeholder="ID">
+        <button onclick="generatePayslip()">Generate</button>
+    `;
+}
+
+/* Logic */
 function addEmployee() {
     let id = document.getElementById("id").value;
     let name = document.getElementById("name").value;
@@ -148,11 +161,11 @@ function addEmployee() {
     let ot = parseInt(document.getElementById("ot").value);
 
     employees.push({id, name, basic, ot});
-    document.getElementById("output").innerHTML = "✅ Employee Added!";
+    print("✔ Employee Added!");
 }
 
 function calculateGross(e) {
-    return e.basic + (e.ot * 200);
+    return e.basic + e.ot * 200;
 }
 
 function calculateTax(g) {
@@ -166,21 +179,19 @@ function generatePayslip() {
     let e = employees.find(emp => emp.id == id);
 
     if (!e) {
-        document.getElementById("output").innerHTML = "❌ Employee not found!";
+        print("✖ Employee not found!");
         return;
     }
 
-    let gross = calculateGross(e);
-    let tax = calculateTax(gross);
-    let net = gross - tax;
+    let g = calculateGross(e);
+    let t = calculateTax(g);
+    let n = g - t;
 
-    document.getElementById("output").innerHTML = `
-        <b>Payslip</b><br>
-        Name: ${e.name}<br>
-        Gross: ${gross}<br>
-        Tax: ${tax}<br>
-        Net: ${net}
-    `;
+    print("\n--- Payslip ---");
+    print("Name: " + e.name);
+    print("Gross: " + g);
+    print("Tax: " + t);
+    print("Net: " + n);
 }
 
 function updateOT() {
@@ -190,44 +201,48 @@ function updateOT() {
     let e = employees.find(emp => emp.id == id);
 
     if (!e) {
-        document.getElementById("output").innerHTML = "❌ Not found!";
+        print("✖ Not found!");
         return;
     }
 
     e.ot = ot;
-    document.getElementById("output").innerHTML = "✅ OT Updated!";
+    print("✔ OT Updated!");
 }
 
 function totalPayout() {
+    showMenu();
+
     let total = employees.reduce((sum, e) => {
-        let net = calculateGross(e) - calculateTax(calculateGross(e));
-        return sum + net;
+        let g = calculateGross(e);
+        return sum + (g - calculateTax(g));
     }, 0);
 
-    document.getElementById("output").innerHTML = "💰 Total Payout: " + total;
+    print("💰 Total Payout: " + total);
 }
 
 function highestPaid() {
+    showMenu();
+
     if (employees.length === 0) {
-        document.getElementById("output").innerHTML = "No employees!";
+        print("No employees!");
         return;
     }
 
     let max = employees.reduce((a, b) => {
-        let netA = calculateGross(a) - calculateTax(calculateGross(a));
-        let netB = calculateGross(b) - calculateTax(calculateGross(b));
-        return netA > netB ? a : b;
+        let na = calculateGross(a) - calculateTax(calculateGross(a));
+        let nb = calculateGross(b) - calculateTax(calculateGross(b));
+        return na > nb ? a : b;
     });
 
-    document.getElementById("output").innerHTML = `
-        🏆 Highest Paid<br>
-        Name: ${max.name}
-    `;
+    print("🏆 Highest Paid: " + max.name);
 }
 
 function exitApp() {
-    document.getElementById("output").innerHTML = "👋 Exiting...";
+    print("Exiting system...");
 }
+
+/* Initial screen */
+showMenu();
 </script>
 
 </body>
