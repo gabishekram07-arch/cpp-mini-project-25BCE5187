@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Payroll System</title>
+<title>Employee Payroll</title>
 
 <style>
 body {
@@ -16,7 +16,7 @@ body {
     height: 100vh;
 }
 
-/* Main container */
+/* Container */
 .container {
     width: 85%;
     max-width: 1000px;
@@ -29,16 +29,35 @@ h1 {
     text-shadow: 0 0 10px #00ffcc;
 }
 
-/* Terminal Output */
+/* Terminal */
 .terminal {
     background: black;
     border: 2px solid #00ff88;
     padding: 20px;
-    height: 400px;   /* BIGGER OUTPUT BOX */
+    height: 400px;
     overflow-y: auto;
     box-shadow: 0 0 20px #00ff88;
     border-radius: 10px;
     white-space: pre-line;
+
+    font-size: 18px;
+    line-height: 1.6;
+    letter-spacing: 0.5px;
+}
+
+/* Cursor */
+.cursor {
+    display: inline-block;
+    width: 10px;
+    background: #00ff88;
+    margin-left: 5px;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
 /* Buttons */
@@ -65,7 +84,7 @@ button:hover {
     box-shadow: 0 0 15px #00ffcc;
 }
 
-/* Input fields */
+/* Inputs */
 .input-area {
     margin-top: 10px;
 }
@@ -83,7 +102,7 @@ input {
 <body>
 
 <div class="container">
-    <h1>💻 Payroll Terminal</h1>
+    <h1>💼 Employee Payroll</h1>
 
     <div class="terminal" id="terminal"></div>
 
@@ -101,11 +120,28 @@ input {
 
 <script>
 let employees = [];
+let terminal = document.getElementById("terminal");
+
+/* Typing effect */
+function typeText(text, speed = 20) {
+    let i = 0;
+    let line = document.createElement("div");
+    terminal.appendChild(line);
+
+    function typing() {
+        if (i < text.length) {
+            line.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
+        } else {
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+    }
+    typing();
+}
 
 function print(text) {
-    const terminal = document.getElementById("terminal");
-    terminal.innerHTML += text + "\n";
-    terminal.scrollTop = terminal.scrollHeight;
+    typeText(text);
 }
 
 function showMenu() {
@@ -118,7 +154,7 @@ function showMenu() {
     print("6. Exit\n");
 }
 
-/* Show forms */
+/* Forms */
 function showAdd() {
     showMenu();
     print(">> Add Employee");
@@ -241,7 +277,7 @@ function exitApp() {
     print("Exiting system...");
 }
 
-/* Initial screen */
+/* Initial */
 showMenu();
 </script>
 
