@@ -7,8 +7,8 @@
 <style>
 body {
     margin: 0;
-    font-family: monospace;
-    background: #0a0a0a;
+    font-family: "Courier New", monospace;
+    background: #050505;
     color: #00ff88;
     display: flex;
     justify-content: center;
@@ -16,51 +16,29 @@ body {
     height: 100vh;
 }
 
-/* Container */
 .container {
-    width: 85%;
-    max-width: 1000px;
+    width: 90%;
+    max-width: 1100px;
 }
 
-/* Title */
 h1 {
     text-align: center;
     color: #00ffcc;
-    text-shadow: 0 0 10px #00ffcc;
+    text-shadow: 0 0 15px #00ffcc;
 }
 
-/* Terminal */
 .terminal {
     background: black;
     border: 2px solid #00ff88;
     padding: 20px;
-    height: 400px;
+    height: 420px;
     overflow-y: auto;
-    box-shadow: 0 0 20px #00ff88;
-    border-radius: 10px;
-    white-space: pre-line;
-
+    border-radius: 12px;
+    box-shadow: 0 0 25px #00ff88;
     font-size: 18px;
     line-height: 1.6;
-    letter-spacing: 0.5px;
 }
 
-/* Cursor */
-.cursor {
-    display: inline-block;
-    width: 10px;
-    background: #00ff88;
-    margin-left: 5px;
-    animation: blink 1s infinite;
-}
-
-@keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-}
-
-/* Buttons */
 .menu {
     margin-top: 15px;
     display: grid;
@@ -70,21 +48,17 @@ h1 {
 
 button {
     padding: 12px;
-    border: none;
     border-radius: 8px;
-    cursor: pointer;
+    border: none;
     background: linear-gradient(135deg, #00ffcc, #0099ff);
-    color: black;
+    cursor: pointer;
     font-weight: bold;
-    transition: 0.3s;
 }
 
 button:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px #00ffcc;
 }
 
-/* Inputs */
 .input-area {
     margin-top: 10px;
 }
@@ -96,6 +70,11 @@ input {
     border-radius: 5px;
     border: none;
 }
+
+.success { color: #00ffcc; }
+.error { color: #ff4d4d; }
+.info { color: #00aaff; }
+
 </style>
 </head>
 
@@ -120,30 +99,26 @@ input {
 
 <script>
 let employees = [];
-let terminal = document.getElementById("terminal");
+const terminal = document.getElementById("terminal");
 
-/* Typing effect */
-function typeText(text, speed = 20) {
-    let i = 0;
+/* Print */
+function print(text, type="") {
     let line = document.createElement("div");
+    line.className = type;
     terminal.appendChild(line);
 
-    function typing() {
+    let i = 0;
+    function typeWriter() {
         if (i < text.length) {
-            line.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(typing, speed);
-        } else {
-            terminal.scrollTop = terminal.scrollHeight;
+            line.innerHTML += text[i++];
+            setTimeout(typeWriter, 15);
         }
     }
-    typing();
+    typeWriter();
+    terminal.scrollTop = terminal.scrollHeight;
 }
 
-function print(text) {
-    typeText(text);
-}
-
+/* Menu */
 function showMenu() {
     print("\n--- Payroll System ---");
     print("1. Add Employee");
@@ -154,8 +129,14 @@ function showMenu() {
     print("6. Exit\n");
 }
 
+/* ✅ CLEAR INPUT BOX */
+function clearInputs() {
+    document.getElementById("inputs").innerHTML = "";
+}
+
 /* Forms */
 function showAdd() {
+    clearInputs();
     showMenu();
     print(">> Add Employee");
 
@@ -169,6 +150,7 @@ function showAdd() {
 }
 
 function showUpdate() {
+    clearInputs();
     showMenu();
     print(">> Update OT");
 
@@ -180,6 +162,7 @@ function showUpdate() {
 }
 
 function showPayslip() {
+    clearInputs();
     showMenu();
     print(">> Generate Payslip");
 
@@ -196,8 +179,14 @@ function addEmployee() {
     let basic = parseFloat(document.getElementById("basic").value);
     let ot = parseInt(document.getElementById("ot").value);
 
+    if (!id || !name || isNaN(basic) || isNaN(ot)) {
+        print("Invalid input!", "error");
+        return;
+    }
+
     employees.push({id, name, basic, ot});
-    print("✔ Employee Added! (ID: " + id + ")", "success");
+
+    print(`✔ Employee Added! (ID: ${id}, Name: ${name})`, "success");
 }
 
 function calculateGross(e) {
@@ -215,7 +204,7 @@ function generatePayslip() {
     let e = employees.find(emp => emp.id == id);
 
     if (!e) {
-        print("✖ Employee not found!");
+        print("✖ Employee not found!", "error");
         return;
     }
 
@@ -227,7 +216,7 @@ function generatePayslip() {
     print("Name: " + e.name);
     print("Gross: " + g);
     print("Tax: " + t);
-    print("Net: " + n);
+    print("Net: " + n, "success");
 }
 
 function updateOT() {
@@ -237,15 +226,17 @@ function updateOT() {
     let e = employees.find(emp => emp.id == id);
 
     if (!e) {
-        print("✖ Not found!");
+        print("✖ Employee not found!", "error");
         return;
     }
 
     e.ot = ot;
-    print("✔ OT Updated!");
+    print("✔ OT Updated!", "success");
 }
 
 function totalPayout() {
+    clearInputs();   // ✅ FIX
+
     showMenu();
 
     let total = employees.reduce((sum, e) => {
@@ -253,14 +244,16 @@ function totalPayout() {
         return sum + (g - calculateTax(g));
     }, 0);
 
-    print("💰 Total Payout: " + total);
+    print("💰 Total Payout: " + total, "success");
 }
 
 function highestPaid() {
+    clearInputs();   // ✅ FIX
+
     showMenu();
 
     if (employees.length === 0) {
-        print("No employees!");
+        print("No employees!", "error");
         return;
     }
 
@@ -270,10 +263,11 @@ function highestPaid() {
         return na > nb ? a : b;
     });
 
-    print("🏆 Highest Paid: " + max.name);
+    print("🏆 Highest Paid: " + max.name + " (ID: " + max.id + ")", "success");
 }
 
 function exitApp() {
+    clearInputs();   // ✅ FIX
     print("Exiting system...");
 }
 
