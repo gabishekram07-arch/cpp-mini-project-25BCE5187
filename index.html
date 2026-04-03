@@ -7,8 +7,8 @@
 <style>
 body {
     margin: 0;
-    font-family: "Courier New", monospace;
-    background: #050505;
+    font-family: monospace;
+    background: #0a0a0a;
     color: #00ff88;
     display: flex;
     justify-content: center;
@@ -16,47 +16,51 @@ body {
     height: 100vh;
 }
 
+/* Container */
 .container {
-    width: 90%;
-    max-width: 1100px;
+    width: 85%;
+    max-width: 1000px;
 }
 
+/* Title */
 h1 {
     text-align: center;
     color: #00ffcc;
-    text-shadow: 0 0 15px #00ffcc;
+    text-shadow: 0 0 10px #00ffcc;
 }
 
+/* Terminal */
 .terminal {
     background: black;
     border: 2px solid #00ff88;
     padding: 20px;
-    height: 420px;
+    height: 400px;
     overflow-y: auto;
-    border-radius: 12px;
-    box-shadow: 0 0 25px #00ff88;
+    box-shadow: 0 0 20px #00ff88;
+    border-radius: 10px;
+    white-space: pre-line;
+
     font-size: 18px;
     line-height: 1.6;
+    letter-spacing: 0.5px;
 }
 
-.input-line {
-    display: flex;
-    margin-top: 10px;
+/* Cursor */
+.cursor {
+    display: inline-block;
+    width: 10px;
+    background: #00ff88;
+    margin-left: 5px;
+    animation: blink 1s infinite;
 }
 
-.prompt {
-    margin-right: 5px;
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
 }
 
-input {
-    flex: 1;
-    background: black;
-    border: none;
-    color: #00ff88;
-    font-size: 18px;
-    outline: none;
-}
-
+/* Buttons */
 .menu {
     margin-top: 15px;
     display: grid;
@@ -66,21 +70,32 @@ input {
 
 button {
     padding: 12px;
-    border-radius: 8px;
     border: none;
-    background: linear-gradient(135deg, #00ffcc, #0099ff);
+    border-radius: 8px;
     cursor: pointer;
+    background: linear-gradient(135deg, #00ffcc, #0099ff);
+    color: black;
     font-weight: bold;
+    transition: 0.3s;
 }
 
 button:hover {
     transform: scale(1.05);
+    box-shadow: 0 0 15px #00ffcc;
 }
 
-.success { color: #00ffcc; }
-.error { color: #ff4d4d; }
-.info { color: #00aaff; }
+/* Inputs */
+.input-area {
+    margin-top: 10px;
+}
 
+input {
+    width: 200px;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    border: none;
+}
 </style>
 </head>
 
@@ -91,170 +106,179 @@ button:hover {
 
     <div class="terminal" id="terminal"></div>
 
-    <div class="input-line">
-        <span class="prompt">></span>
-        <input id="commandInput" placeholder="Type command..." onkeydown="handleCommand(event)">
+    <div class="menu">
+        <button onclick="showAdd()">Add</button>
+        <button onclick="showUpdate()">Update OT</button>
+        <button onclick="showPayslip()">Payslip</button>
+        <button onclick="totalPayout()">Total</button>
+        <button onclick="highestPaid()">Highest</button>
+        <button onclick="exitApp()">Exit</button>
     </div>
 
-    <div class="menu">
-        <button onclick="runCmd('add')">Add</button>
-        <button onclick="runCmd('update')">Update</button>
-        <button onclick="runCmd('payslip')">Payslip</button>
-        <button onclick="runCmd('total')">Total</button>
-        <button onclick="runCmd('highest')">Highest</button>
-        <button onclick="runCmd('list')">List</button>
-    </div>
+    <div class="input-area" id="inputs"></div>
 </div>
 
 <script>
-let employees = JSON.parse(localStorage.getItem("employees")) || [];
-const terminal = document.getElementById("terminal");
+let employees = [];
+let terminal = document.getElementById("terminal");
 
-/* Typing print */
-function print(text, type="") {
+/* Typing effect */
+function typeText(text, speed = 20) {
+    let i = 0;
     let line = document.createElement("div");
-    line.className = type;
     terminal.appendChild(line);
 
-    let i = 0;
-    function typeWriter() {
+    function typing() {
         if (i < text.length) {
-            line.innerHTML += text[i++];
-            setTimeout(typeWriter, 15);
+            line.innerHTML += text.charAt(i);
+            i++;
+            setTimeout(typing, speed);
+        } else {
+            terminal.scrollTop = terminal.scrollHeight;
         }
     }
-    typeWriter();
-    terminal.scrollTop = terminal.scrollHeight;
+    typing();
 }
 
-/* Handle input */
-function handleCommand(e) {
-    if (e.key === "Enter") {
-        let cmd = e.target.value.trim();
-        print("> " + cmd, "info");
-        execute(cmd);
-        e.target.value = "";
+function print(text) {
+    typeText(text);
+}
+
+function showMenu() {
+    print("\n--- Payroll System ---");
+    print("1. Add Employee");
+    print("2. Update OT");
+    print("3. Generate Payslip");
+    print("4. Total Payout");
+    print("5. Highest Paid");
+    print("6. Exit\n");
+}
+
+/* Forms */
+function showAdd() {
+    showMenu();
+    print(">> Add Employee");
+
+    document.getElementById("inputs").innerHTML = `
+        <input id="id" placeholder="ID">
+        <input id="name" placeholder="Name">
+        <input id="basic" placeholder="Basic">
+        <input id="ot" placeholder="OT">
+        <button onclick="addEmployee()">Submit</button>
+    `;
+}
+
+function showUpdate() {
+    showMenu();
+    print(">> Update OT");
+
+    document.getElementById("inputs").innerHTML = `
+        <input id="id" placeholder="ID">
+        <input id="ot" placeholder="New OT">
+        <button onclick="updateOT()">Update</button>
+    `;
+}
+
+function showPayslip() {
+    showMenu();
+    print(">> Generate Payslip");
+
+    document.getElementById("inputs").innerHTML = `
+        <input id="id" placeholder="ID">
+        <button onclick="generatePayslip()">Generate</button>
+    `;
+}
+
+/* Logic */
+function addEmployee() {
+    let id = document.getElementById("id").value;
+    let name = document.getElementById("name").value;
+    let basic = parseFloat(document.getElementById("basic").value);
+    let ot = parseInt(document.getElementById("ot").value);
+
+    employees.push({id, name, basic, ot});
+    print("✔ Employee Added! (ID: " + id + ")", "success");
+}
+
+function calculateGross(e) {
+    return e.basic + e.ot * 200;
+}
+
+function calculateTax(g) {
+    if (g < 20000) return g * 0.05;
+    else if (g <= 50000) return g * 0.10;
+    else return g * 0.20;
+}
+
+function generatePayslip() {
+    let id = document.getElementById("id").value;
+    let e = employees.find(emp => emp.id == id);
+
+    if (!e) {
+        print("✖ Employee not found!");
+        return;
     }
+
+    let g = calculateGross(e);
+    let t = calculateTax(g);
+    let n = g - t;
+
+    print("\n--- Payslip ---");
+    print("Name: " + e.name);
+    print("Gross: " + g);
+    print("Tax: " + t);
+    print("Net: " + n);
 }
 
-function runCmd(cmd) {
-    print("> " + cmd, "info");
-    execute(cmd);
-}
+function updateOT() {
+    let id = document.getElementById("id").value;
+    let ot = parseInt(document.getElementById("ot").value);
 
-/* Commands */
-function execute(cmd) {
-    switch(cmd.toLowerCase()) {
+    let e = employees.find(emp => emp.id == id);
 
-        case "add":
-            let id = prompt("Enter Employee ID:");
-            let name = prompt("Enter Name:");
-            let basic = parseFloat(prompt("Enter Basic Pay:"));
-            let ot = parseInt(prompt("Enter OT Hours:"));
-
-            if (!id || !name || isNaN(basic) || isNaN(ot)) {
-                print("Invalid input!", "error");
-                return;
-            }
-
-            employees.push({id, name, basic, ot});
-            save();
-
-            /* ✅ UPDATED LINE */
-            print(`✔ Employee Added! (ID: ${id}, Name: ${name})`, "success");
-            break;
-
-        case "update":
-            let uid = prompt("Enter ID:");
-            let emp = employees.find(e => e.id == uid);
-
-            if (!emp) {
-                print("Employee not found!", "error");
-                return;
-            }
-
-            emp.ot = parseInt(prompt("Enter New OT:"));
-            save();
-            print("✔ OT Updated!", "success");
-            break;
-
-        case "payslip":
-            let pid = prompt("Enter ID:");
-            let e = employees.find(x => x.id == pid);
-
-            if (!e) {
-                print("Employee not found!", "error");
-                return;
-            }
-
-            let g = e.basic + e.ot * 200;
-            let t = g < 20000 ? g * 0.05 : g <= 50000 ? g * 0.10 : g * 0.20;
-
-            print("--- Payslip ---");
-            print("Name: " + e.name);
-            print("Gross: " + g);
-            print("Tax: " + t);
-            print("Net: " + (g - t), "success");
-            break;
-
-        case "total":
-            let total = employees.reduce((s,e)=>{
-                let g = e.basic + e.ot * 200;
-                let t = g < 20000 ? g * 0.05 : g <= 50000 ? g * 0.10 : g * 0.20;
-                return s + (g - t);
-            },0);
-
-            print("💰 Total Payout: " + total, "success");
-            break;
-
-        case "highest":
-            if (!employees.length) {
-                print("No employees!", "error");
-                return;
-            }
-
-            let max = employees.reduce((a,b)=>{
-                let na = a.basic + a.ot * 200;
-                let nb = b.basic + b.ot * 200;
-                return na > nb ? a : b;
-            });
-
-            print("🏆 Highest Paid: " + max.name + " (ID: " + max.id + ")", "success");
-            break;
-
-        case "list":
-            if (!employees.length) {
-                print("No employees!", "error");
-                return;
-            }
-
-            print("--- Employee List ---");
-            employees.forEach(e=>{
-                print(`ID: ${e.id} | Name: ${e.name} | Basic: ${e.basic}`);
-            });
-            break;
-
-        case "clear":
-            terminal.innerHTML = "";
-            break;
-
-        case "help":
-            print("Commands: add, update, payslip, total, highest, list, clear");
-            break;
-
-        default:
-            print("Unknown command (type 'help')", "error");
+    if (!e) {
+        print("✖ Not found!");
+        return;
     }
+
+    e.ot = ot;
+    print("✔ OT Updated!");
 }
 
-/* Save to storage */
-function save() {
-    localStorage.setItem("employees", JSON.stringify(employees));
+function totalPayout() {
+    showMenu();
+
+    let total = employees.reduce((sum, e) => {
+        let g = calculateGross(e);
+        return sum + (g - calculateTax(g));
+    }, 0);
+
+    print("💰 Total Payout: " + total);
+}
+
+function highestPaid() {
+    showMenu();
+
+    if (employees.length === 0) {
+        print("No employees!");
+        return;
+    }
+
+    let max = employees.reduce((a, b) => {
+        let na = calculateGross(a) - calculateTax(calculateGross(a));
+        let nb = calculateGross(b) - calculateTax(calculateGross(b));
+        return na > nb ? a : b;
+    });
+
+    print("🏆 Highest Paid: " + max.name);
+}
+
+function exitApp() {
+    print("Exiting system...");
 }
 
 /* Initial */
-print("Welcome to Employee Payroll System", "success");
-print("Type 'help' to see commands\n", "info");
+showMenu();
 </script>
 
 </body>
